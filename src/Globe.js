@@ -13,7 +13,7 @@ function toPoint(lat, lng, u) {
   return [x, y, z];
 }
 
-function Box(props) {
+function DataViz({ position, populationIndex }) {
   // This reference will give us direct access to the mesh
   const mesh = useRef();
 
@@ -23,10 +23,10 @@ function Box(props) {
 
   // Rotate mesh every frame, this is outside of React without overhead
   useFrame(() => {
-    mesh.current.rotation.y += 0.01;
+    // mesh.current.rotation.y += 0.01;
   });
 
-  const step = -90 / 10;
+  const step = -1;
   const lats = range(90, -90 + step, step);
   const lngs = range(180, -180 + step, step);
 
@@ -34,7 +34,9 @@ function Box(props) {
     () =>
       lats.map((lat) => {
         const positions = new Float32Array(
-          lngs.flatMap((lng) => toPoint(lat, lng, 2))
+          lngs.flatMap((lng) =>
+            toPoint(lat, lng, 2 + (populationIndex[[lat, lng]] || 0) * 0.5)
+          )
         );
         return (
           <line key={`${lat}`}>
@@ -50,17 +52,17 @@ function Box(props) {
           </line>
         );
       }),
-    []
+    [populationIndex]
   );
 
   return (
     <>
       {lines}
       <mesh
-        {...props}
+        position={position}
         ref={mesh}
-        scale={active ? [1.5, 1.5, 1.5] : [1, 1, 1]}
-        onClick={(event) => setActive(!active)}
+        scale={!active ? [2, 2, 2] : [1, 1, 1]}
+        // onClick={(event) => setActive(!active)}
         onPointerOver={(event) => setHover(true)}
         onPointerOut={(event) => setHover(false)}
       >
@@ -95,12 +97,12 @@ function Controls({ children }) {
   );
 }
 
-export const Globe = () => (
+export const Globe = ({ populationIndex }) => (
   <Canvas raycaster={{ params: { Line: { threshold: 5 } } }}>
     <ambientLight />
     <pointLight position={[10, 10, 10]} />
     <Controls>
-      <Box position={[0, 0, 0]} />
+      <DataViz populationIndex={populationIndex} position={[0, 0, 0]} />
     </Controls>
   </Canvas>
 );
