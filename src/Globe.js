@@ -13,7 +13,7 @@ function toPoint(lat, lng, u) {
   return [x, y, z];
 }
 
-function DataViz({ position, populationIndex }) {
+function DataViz({ position, displacement, populationIndex }) {
   // This reference will give us direct access to the mesh
   const mesh = useRef();
 
@@ -27,7 +27,7 @@ function DataViz({ position, populationIndex }) {
   });
 
   const step = -1;
-  const lats = range(90, -90 + step, step);
+  const lats = range(80, -80 + step, step);
   const lngs = range(180, -180 + step, step);
 
   const lines = useMemo(
@@ -35,7 +35,11 @@ function DataViz({ position, populationIndex }) {
       lats.map((lat) => {
         const positions = new Float32Array(
           lngs.flatMap((lng) =>
-            toPoint(lat, lng, 2 + (populationIndex[[lat, lng]] || 0) * 0.5)
+            toPoint(
+              lat,
+              lng,
+              2 + (populationIndex[[lat, lng]] || 0) * displacement
+            )
           )
         );
         return (
@@ -48,11 +52,14 @@ function DataViz({ position, populationIndex }) {
                 itemSize={3}
               />
             </bufferGeometry>
-            <lineBasicMaterial attach="material" color="black" />
+            <lineBasicMaterial
+              attach="material"
+              color={lat < 0 ? "black" : "black"}
+            />
           </line>
         );
       }),
-    [populationIndex]
+    [populationIndex, lats, lngs, displacement]
   );
 
   return (
@@ -97,12 +104,12 @@ function Controls({ children }) {
   );
 }
 
-export const Globe = ({ populationIndex }) => (
+export const Globe = (props) => (
   <Canvas raycaster={{ params: { Line: { threshold: 5 } } }}>
     <ambientLight />
     <pointLight position={[10, 10, 10]} />
     <Controls>
-      <DataViz populationIndex={populationIndex} position={[0, 0, 0]} />
+      <DataViz {...props} position={[0, 0, 0]} />
     </Controls>
   </Canvas>
 );
