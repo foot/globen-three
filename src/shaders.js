@@ -3,7 +3,7 @@ export const blueRed = {
   uniforms: {
     colorA: { type: "vec3", value: new THREE.Color(0xff0000) },
     colorB: { type: "vec3", value: new THREE.Color(0x0000ff) },
-    displacementA: { value: 1.5 },
+    displacementA: { value: 1 },
   },
   vertexShader: `
     varying vec3 vUv; 
@@ -11,18 +11,11 @@ export const blueRed = {
 
     void main() {
       vUv = position; 
-
-      float dist;
-      vec3 center;
-      float v;
-      v = 1.0;
-      center = vec3(0, 0, 0);
-
-      dist = distance(center, position);
-      if (dist > 2.0) {
-        v = displacementA;
-      }
-      vec4 modelViewPosition = modelViewMatrix * vec4(position.x * v, position.y * v, position.z * v, 1.0);
+      vec3 posA;
+      vec3 np2;
+      np2 = normalize(position) * 2.0;
+      posA = (position - np2) * displacementA + np2;
+      vec4 modelViewPosition = modelViewMatrix * vec4(posA.x, posA.y, posA.z, 1.0);
       gl_Position = projectionMatrix * modelViewPosition; 
     }
   `,
@@ -35,12 +28,4 @@ export const blueRed = {
         gl_FragColor = vec4(mix(colorA, colorB, vUv.z), 1.0);
     }
   `,
-};
-
-export const redBlue = {
-  ...blueRed,
-  uniforms: {
-    colorA: { type: "vec3", value: new THREE.Color(0x0000ff) },
-    colorB: { type: "vec3", value: new THREE.Color(0xff0000) },
-  },
 };

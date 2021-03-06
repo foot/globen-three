@@ -5,8 +5,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
-import { WEBGL } from "three/examples/jsm/WebGL";
-import { blueRed, redBlue } from "./shaders";
+import { blueRed } from "./shaders";
 
 extend({ OrbitControls, EffectComposer, RenderPass, ShaderPass });
 
@@ -19,18 +18,27 @@ function toPoint(lat, lng, u) {
   return [x, y, z];
 }
 
-function DataViz({ displacement, populationIndex }) {
+const step = -1;
+const lats = range(80, -80 + step, step);
+const lngs = range(180, -180 + step, step);
+
+function DataViz({ animate, setDisplacement, displacement, populationIndex }) {
   // This reference will give us direct access to the mesh
   const lineSegmentsRef = useRef();
+  const [dd, setDD] = useState(0.01);
 
   // Rotate mesh every frame, this is outside of React without overhead
   useFrame(() => {
     lineSegmentsRef.current.rotation.y += 0.001;
+    if (animate) {
+      if (displacement >= 5) {
+        setDD(-0.01);
+      } else if (displacement <= 0) {
+        setDD(0.01);
+      }
+      setDisplacement(displacement + dd);
+    }
   });
-
-  const step = -1;
-  const lats = range(80, -80 + step, step);
-  const lngs = range(180, -180 + step, step);
 
   const positions = useMemo(
     () =>
@@ -38,11 +46,7 @@ function DataViz({ displacement, populationIndex }) {
         lats.flatMap((lat) => {
           // latPositions: [x,y,z][]
           const latPositions = lngs.map((lng) =>
-            toPoint(
-              lat,
-              lng,
-              2 + (populationIndex[[lat, lng]] || 0) * displacement
-            )
+            toPoint(lat, lng, 2 + (populationIndex[[lat, lng]] || 0) * 1)
           );
           // latSegments: [x,y,z][]
           const latSegments = range(latPositions.length - 1).flatMap((i) => [
@@ -53,28 +57,34 @@ function DataViz({ displacement, populationIndex }) {
           return flatten(latSegments);
         })
       ),
-    [populationIndex, lats, lngs]
+    [populationIndex.length]
   );
 
   useEffect(() => {
     const { current } = lineSegmentsRef;
-    current.geometry.attributes.position.needsUpdate = true;
-    current.geometry.computeBoundingSphere();
-  }, [lineSegmentsRef, positions]);
+    current.material.uniformsNeedUpdate = true;
+    current.material.uniforms.displacementA.value = displacement;
+  }, [lineSegmentsRef, positions, displacement]);
 
-  const { uniforms, fragmentShader, vertexShader } = redBlue;
+  const { uniforms, fragmentShader, vertexShader } = blueRed;
+
+  const geom = useMemo(() => {
+    return (
+      <bufferGeometry attach="geometry">
+        <bufferAttribute
+          attachObject={["attributes", "position"]}
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+    );
+  }, []);
 
   return (
     <>
       <lineSegments ref={lineSegmentsRef}>
-        <bufferGeometry attach="geometry">
-          <bufferAttribute
-            attachObject={["attributes", "position"]}
-            count={positions.length / 3}
-            array={positions}
-            itemSize={3}
-          />
-        </bufferGeometry>
+        {geom}
         <shaderMaterial
           attach="material"
           uniforms={uniforms}
@@ -111,15 +121,6 @@ function Controls({ children }) {
 }
 
 export const Globe = (props) => {
-  console.log(WEBGL.isWebGL2Available());
-  return (
-    <Canvas raycaster={{ params: { Line: { threshold: 5 } } }}>
-      <GlobeInner {...props} />
-    </Canvas>
-  );
-};
-
-export const GlobeInner = (props) => {
   // Set up state for the hovered and active state
   const [hovered, setHover] = useState(false);
   const [active, setActive] = useState(false);
@@ -128,9 +129,8 @@ export const GlobeInner = (props) => {
     props.populationIndex,
   ]);
 
-  const { uniforms, fragmentShader, vertexShader } = blueRed;
   return (
-    <>
+    <Canvas raycaster={{ params: { Line: { threshold: 5 } } }}>
       <color attach="background" args={["lightblue"]} />
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
@@ -147,6 +147,6 @@ export const GlobeInner = (props) => {
           <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
         </mesh>
       </Controls>
-    </>
+    </Canvas>
   );
 };
