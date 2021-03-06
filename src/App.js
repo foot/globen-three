@@ -5,7 +5,7 @@ import { Globe } from "./Globe";
 
 function App() {
   const [data, setData] = useState(null);
-  const [displacement, setDisplacement] = useState(2.5);
+  const [displacement, setDisplacement] = useState(1);
   const [animate, setAnimate] = useState(true);
 
   useEffect(() => {
@@ -49,9 +49,9 @@ function App() {
               <input
                 type="range"
                 min="0"
-                max="5"
+                max="2"
                 value={displacement}
-                step="0.01"
+                step="0.001"
                 onChange={(ev) => setDisplacement(parseFloat(ev.target.value))}
               />
             </div>

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+
 export const blueRed = {
   uniforms: {
     colorA: { type: "vec3", value: new THREE.Color(0xff0000) },
@@ -8,13 +9,12 @@ export const blueRed = {
   vertexShader: `
     varying vec3 vUv; 
     uniform float displacementA; 
+    attribute float population;
 
     void main() {
       vUv = position; 
       vec3 posA;
-      vec3 np2;
-      np2 = normalize(position) * 2.0;
-      posA = (position - np2) * displacementA + np2;
+      posA = position * (displacementA * population + 1.0);
       vec4 modelViewPosition = modelViewMatrix * vec4(posA.x, posA.y, posA.z, 1.0);
       gl_Position = projectionMatrix * modelViewPosition; 
     }

@@ -31,7 +31,7 @@ function DataViz({ animate, setDisplacement, displacement, populationIndex }) {
   useFrame(() => {
     lineSegmentsRef.current.rotation.y += 0.001;
     if (animate) {
-      if (displacement >= 5) {
+      if (displacement >= 2) {
         setDD(-0.01);
       } else if (displacement <= 0) {
         setDD(0.01);
@@ -40,14 +40,29 @@ function DataViz({ animate, setDisplacement, displacement, populationIndex }) {
     }
   });
 
+  const populationAttributes = useMemo(
+    () =>
+      new Float32Array(
+        lats.flatMap((lat) => {
+          const latPositions = lngs.map(
+            (lng) => (populationIndex[[lat, lng]] || 0) * 1
+          );
+          const latSegments = range(latPositions.length - 1).flatMap((i) => [
+            latPositions[i],
+            latPositions[i + 1],
+          ]);
+          return flatten(latSegments);
+        })
+      ),
+    [populationIndex.length]
+  );
+
   const positions = useMemo(
     () =>
       new Float32Array(
         lats.flatMap((lat) => {
           // latPositions: [x,y,z][]
-          const latPositions = lngs.map((lng) =>
-            toPoint(lat, lng, 2 + (populationIndex[[lat, lng]] || 0) * 1)
-          );
+          const latPositions = lngs.map((lng) => toPoint(lat, lng, 2));
           // latSegments: [x,y,z][]
           const latSegments = range(latPositions.length - 1).flatMap((i) => [
             latPositions[i],
@@ -76,6 +91,12 @@ function DataViz({ animate, setDisplacement, displacement, populationIndex }) {
           count={positions.length / 3}
           array={positions}
           itemSize={3}
+        />
+        <bufferAttribute
+          attachObject={["attributes", "population"]}
+          count={populationAttributes.length}
+          array={populationAttributes}
+          itemSize={1}
         />
       </bufferGeometry>
     );
