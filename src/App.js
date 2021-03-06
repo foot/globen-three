@@ -4,7 +4,7 @@ import "./App.css";
 import { Globe } from "./Globe";
 
 function App() {
-  const [data, setData] = useState({});
+  const [data, setData] = useState(null);
   const [displacement, setDisplacement] = useState(2.5);
   const [animate, setAnimate] = useState(true);
 
@@ -20,6 +20,10 @@ function App() {
   const populationIndex = fromPairs(
     chunk(data, 3).map(([lat, lng, v]) => [[lat, lng], v])
   );
+
+  if (!data) {
+    return "Loading...";
+  }
 
   return (
     <div className="bg-gray-100 h-screen flex flex-col">

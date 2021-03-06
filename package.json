@@ -2,6 +2,7 @@
   "name": "globen",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://foot.github.io/globen-three",
   "dependencies": {
     "@craco/craco": "^6.1.1",
     "@tailwindcss/postcss7-compat": "^2.0.3",
