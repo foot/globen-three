@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/globen-three/static/css/main.35c4f14e.chunk.css",
-    "main.js": "/globen-three/static/js/main.7c9c677c.chunk.js",
-    "main.js.map": "/globen-three/static/js/main.7c9c677c.chunk.js.map",
+    "main.js": "/globen-three/static/js/main.963e81da.chunk.js",
+    "main.js.map": "/globen-three/static/js/main.963e81da.chunk.js.map",
     "runtime-main.js": "/globen-three/static/js/runtime-main.f79ec6f1.js",
     "runtime-main.js.map": "/globen-three/static/js/runtime-main.f79ec6f1.js.map",
     "static/js/2.d8cad177.chunk.js": "/globen-three/static/js/2.d8cad177.chunk.js",
@@ -17,6 +17,6 @@
     "static/js/runtime-main.f79ec6f1.js",
     "static/js/2.d8cad177.chunk.js",
     "static/css/main.35c4f14e.chunk.css",
-    "static/js/main.7c9c677c.chunk.js"
+    "static/js/main.963e81da.chunk.js"
   ]
 }
