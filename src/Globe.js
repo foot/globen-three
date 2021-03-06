@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, extend, useThree } from "react-three-fiber";
-import { range } from "lodash";
+import { flatten, range } from "lodash";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 extend({ OrbitControls });
 
@@ -15,7 +15,7 @@ function toPoint(lat, lng, u) {
 
 function DataViz({ position, displacement, populationIndex }) {
   // This reference will give us direct access to the mesh
-  const mesh = useRef();
+  const lineSegmentsRef = useRef();
 
   // Set up state for the hovered and active state
   const [hovered, setHover] = useState(false);
@@ -23,51 +23,58 @@ function DataViz({ position, displacement, populationIndex }) {
 
   // Rotate mesh every frame, this is outside of React without overhead
   useFrame(() => {
-    // mesh.current.rotation.y += 0.01;
+    lineSegmentsRef.current.rotation.y += 0.01;
   });
 
   const step = -1;
   const lats = range(80, -80 + step, step);
   const lngs = range(180, -180 + step, step);
 
-  const lines = useMemo(
+  const positions = useMemo(
     () =>
-      lats.map((lat) => {
-        const positions = new Float32Array(
-          lngs.flatMap((lng) =>
+      new Float32Array(
+        lats.flatMap((lat) => {
+          // latPositions: [x,y,z][]
+          const latPositions = lngs.map((lng) =>
             toPoint(
               lat,
               lng,
               2 + (populationIndex[[lat, lng]] || 0) * displacement
             )
-          )
-        );
-        return (
-          <line key={`${lat}`}>
-            <bufferGeometry attach="geometry">
-              <bufferAttribute
-                attachObject={["attributes", "position"]}
-                count={positions.length / 3}
-                array={positions}
-                itemSize={3}
-              />
-            </bufferGeometry>
-            <lineBasicMaterial
-              attach="material"
-              color={lat < 0 ? "black" : "black"}
-            />
-          </line>
-        );
-      }),
-    [populationIndex, lats, lngs, displacement]
+          );
+          // latSegments: [x,y,z][]
+          const latSegments = range(latPositions.length - 1).flatMap((i) => [
+            latPositions[i],
+            latPositions[i + 1],
+          ]);
+          // return [x,y,z,x,y,z,...]
+          return flatten(latSegments);
+        })
+      ),
+    [populationIndex, lats, lngs]
   );
+
+  useEffect(() => {
+    const { current } = lineSegmentsRef;
+    current.geometry.attributes.position.needsUpdate = true;
+    current.geometry.computeBoundingSphere();
+  }, [lineSegmentsRef, positions]);
 
   return (
     <>
-      {lines}
+      <lineSegments ref={lineSegmentsRef}>
+        <bufferGeometry attach="geometry">
+          <bufferAttribute
+            attachObject={["attributes", "position"]}
+            count={positions.length / 3}
+            array={positions}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial attach="material" color="black" />
+      </lineSegments>
       <mesh
         position={position}
-        ref={mesh}
         scale={!active ? [2, 2, 2] : [1, 1, 1]}
         // onClick={(event) => setActive(!active)}
         onPointerOver={(event) => setHover(true)}
