@@ -2,7 +2,13 @@ import React, { useMemo, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, extend, useThree } from "react-three-fiber";
 import { flatten, range } from "lodash";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-extend({ OrbitControls });
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
+import { WEBGL } from "three/examples/jsm/WebGL";
+import { blueRed, redBlue } from "./shaders";
+
+extend({ OrbitControls, EffectComposer, RenderPass, ShaderPass });
 
 function toPoint(lat, lng, u) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -13,17 +19,13 @@ function toPoint(lat, lng, u) {
   return [x, y, z];
 }
 
-function DataViz({ position, displacement, populationIndex }) {
+function DataViz({ displacement, populationIndex }) {
   // This reference will give us direct access to the mesh
   const lineSegmentsRef = useRef();
 
-  // Set up state for the hovered and active state
-  const [hovered, setHover] = useState(false);
-  const [active, setActive] = useState(false);
-
   // Rotate mesh every frame, this is outside of React without overhead
   useFrame(() => {
-    lineSegmentsRef.current.rotation.y += 0.01;
+    lineSegmentsRef.current.rotation.y += 0.001;
   });
 
   const step = -1;
@@ -60,6 +62,8 @@ function DataViz({ position, displacement, populationIndex }) {
     current.geometry.computeBoundingSphere();
   }, [lineSegmentsRef, positions]);
 
+  const { uniforms, fragmentShader, vertexShader } = redBlue;
+
   return (
     <>
       <lineSegments ref={lineSegmentsRef}>
@@ -71,18 +75,13 @@ function DataViz({ position, displacement, populationIndex }) {
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial attach="material" color="black" />
+        <shaderMaterial
+          attach="material"
+          uniforms={uniforms}
+          fragmentShader={fragmentShader}
+          vertexShader={vertexShader}
+        />
       </lineSegments>
-      <mesh
-        position={position}
-        scale={!active ? [2, 2, 2] : [1, 1, 1]}
-        // onClick={(event) => setActive(!active)}
-        onPointerOver={(event) => setHover(true)}
-        onPointerOut={(event) => setHover(false)}
-      >
-        <sphereBufferGeometry args={[1, 12, 12]} />
-        <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
-      </mesh>
     </>
   );
 }
@@ -111,12 +110,43 @@ function Controls({ children }) {
   );
 }
 
-export const Globe = (props) => (
-  <Canvas raycaster={{ params: { Line: { threshold: 5 } } }}>
-    <ambientLight />
-    <pointLight position={[10, 10, 10]} />
-    <Controls>
-      <DataViz {...props} position={[0, 0, 0]} />
-    </Controls>
-  </Canvas>
-);
+export const Globe = (props) => {
+  console.log(WEBGL.isWebGL2Available());
+  return (
+    <Canvas raycaster={{ params: { Line: { threshold: 5 } } }}>
+      <GlobeInner {...props} />
+    </Canvas>
+  );
+};
+
+export const GlobeInner = (props) => {
+  // Set up state for the hovered and active state
+  const [hovered, setHover] = useState(false);
+  const [active, setActive] = useState(false);
+  const viz = useMemo(() => <DataViz {...props} />, [
+    props.displacement,
+    props.populationIndex,
+  ]);
+
+  const { uniforms, fragmentShader, vertexShader } = blueRed;
+  return (
+    <>
+      <color attach="background" args={["lightblue"]} />
+      <ambientLight />
+      <pointLight position={[10, 10, 10]} />
+      <Controls>
+        {viz}
+        <mesh
+          position={[0, 0, 0]}
+          scale={!active ? [2, 2, 2] : [1, 1, 1]}
+          // onClick={(event) => setActive(!active)}
+          onPointerOver={(event) => setHover(true)}
+          onPointerOut={(event) => setHover(false)}
+        >
+          <sphereBufferGeometry args={[1, 12, 12]} />
+          <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
+        </mesh>
+      </Controls>
+    </>
+  );
+};
