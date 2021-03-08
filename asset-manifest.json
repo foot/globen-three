@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.css": "/static/css/main.31ac44c6.chunk.css",
-    "main.js": "/static/js/main.98bca9ba.chunk.js",
-    "main.js.map": "/static/js/main.98bca9ba.chunk.js.map",
-    "runtime-main.js": "/static/js/runtime-main.5c6d8b15.js",
-    "runtime-main.js.map": "/static/js/runtime-main.5c6d8b15.js.map",
-    "static/js/2.b16a8664.chunk.js": "/static/js/2.b16a8664.chunk.js",
-    "static/js/2.b16a8664.chunk.js.map": "/static/js/2.b16a8664.chunk.js.map",
-    "static/js/3.0913c50a.chunk.js": "/static/js/3.0913c50a.chunk.js",
-    "static/js/3.0913c50a.chunk.js.map": "/static/js/3.0913c50a.chunk.js.map",
-    "index.html": "/index.html",
-    "static/css/main.31ac44c6.chunk.css.map": "/static/css/main.31ac44c6.chunk.css.map",
-    "static/js/2.b16a8664.chunk.js.LICENSE.txt": "/static/js/2.b16a8664.chunk.js.LICENSE.txt"
+    "main.css": "https://foot.github.io/globen-three/static/css/main.31ac44c6.chunk.css",
+    "main.js": "https://foot.github.io/globen-three/static/js/main.98bca9ba.chunk.js",
+    "main.js.map": "https://foot.github.io/globen-three/static/js/main.98bca9ba.chunk.js.map",
+    "runtime-main.js": "https://foot.github.io/globen-three/static/js/runtime-main.ef2c5c6e.js",
+    "runtime-main.js.map": "https://foot.github.io/globen-three/static/js/runtime-main.ef2c5c6e.js.map",
+    "static/js/2.b16a8664.chunk.js": "https://foot.github.io/globen-three/static/js/2.b16a8664.chunk.js",
+    "static/js/2.b16a8664.chunk.js.map": "https://foot.github.io/globen-three/static/js/2.b16a8664.chunk.js.map",
+    "static/js/3.0913c50a.chunk.js": "https://foot.github.io/globen-three/static/js/3.0913c50a.chunk.js",
+    "static/js/3.0913c50a.chunk.js.map": "https://foot.github.io/globen-three/static/js/3.0913c50a.chunk.js.map",
+    "index.html": "https://foot.github.io/globen-three/index.html",
+    "static/css/main.31ac44c6.chunk.css.map": "https://foot.github.io/globen-three/static/css/main.31ac44c6.chunk.css.map",
+    "static/js/2.b16a8664.chunk.js.LICENSE.txt": "https://foot.github.io/globen-three/static/js/2.b16a8664.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.5c6d8b15.js",
+    "static/js/runtime-main.ef2c5c6e.js",
     "static/js/2.b16a8664.chunk.js",
     "static/css/main.31ac44c6.chunk.css",
     "static/js/main.98bca9ba.chunk.js"
