@@ -1,25 +1,40 @@
 import { useEffect, useState } from "react";
-import { chunk, fromPairs } from "lodash";
+import { chunk, fromPairs, keys } from "lodash";
 import "./App.css";
 import { Globe } from "./Globe";
+
+function toIndex(data) {
+  // { [year]: { [latlng]: v } }}
+  const populationIndex = fromPairs(
+    data.map(([year, d]) => {
+      const latLngIndex = fromPairs(
+        chunk(d, 3).map(([lat, lng, v]) => [[lat, lng], v])
+      );
+      return [year, latLngIndex];
+    })
+  );
+
+  return populationIndex;
+}
 
 function App() {
   const [data, setData] = useState(null);
   const [displacement, setDisplacement] = useState(1);
-  const [animate, setAnimate] = useState(true);
+  const [animate, setAnimate] = useState(false);
+  const [year, setYear] = useState(null);
 
   useEffect(() => {
     window
       .fetch("./data/population909500.json")
       .then((res) => res.json())
-      .then(([a, b, [year, d]]) => {
-        setData(d);
+      .then((d) => {
+        const index = toIndex(d);
+        setData(index);
+        setYear(keys(index)[0]);
       });
   }, []);
 
-  const populationIndex = fromPairs(
-    chunk(data, 3).map(([lat, lng, v]) => [[lat, lng], v])
-  );
+  const years = keys(data).sort();
 
   if (!data) {
     return "Loading...";
@@ -37,45 +52,87 @@ function App() {
           animate={animate}
           setDisplacement={setDisplacement}
           displacement={displacement}
-          populationIndex={populationIndex}
+          populationIndex={data[year]}
         />
 
         <div className="absolute top-4 left-4 shadow sm:rounded-md sm:overflow-hidden">
           <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
-            <label className="block text-sm font-medium text-gray-700">
-              Displacement
-            </label>
-            <div className="mt-1 flex rounded-md shadow-sm">
-              <input
-                type="range"
-                min="0"
-                max="2"
-                value={displacement}
-                step="0.001"
-                onChange={(ev) => setDisplacement(parseFloat(ev.target.value))}
-              />
-            </div>
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="animate"
-                  name="animate"
-                  type="checkbox"
-                  checked={animate}
-                  className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  onChange={(ev) => {
-                    console.log(ev.target.checked);
-                    setAnimate(ev.target.checked);
-                  }}
-                />
+            <fieldset>
+              <div>
+                <legend className="text-base font-medium text-gray-900">
+                  Population data
+                </legend>
+                <p className="text-sm text-gray-500">Population by year</p>
               </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="animate" className="font-medium text-gray-700">
-                  Animate
-                </label>
-                <p className="text-gray-500">Animate the displacement</p>
+              <div
+                onChange={(ev) => setYear(ev.target.value)}
+                className="mt-4 space-y-4"
+              >
+                {years.map((y) => {
+                  return (
+                    <div key={y} className="flex items-center">
+                      <input
+                        id={y}
+                        name={y}
+                        value={y}
+                        checked={y === year}
+                        type="radio"
+                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                      />
+                      <label
+                        htmlFor={y}
+                        className="ml-3 block text-sm font-medium text-gray-700"
+                      >
+                        {y}
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            </fieldset>
+            <fieldset>
+              <div>
+                <legend className="text-base font-medium text-gray-900">
+                  Displacement
+                </legend>
+                <p className="text-sm text-gray-500">How far the spikes go</p>
+              </div>
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center">
+                  <input
+                    type="range"
+                    min="0"
+                    max="2"
+                    value={displacement}
+                    step="0.001"
+                    onChange={(ev) =>
+                      setDisplacement(parseFloat(ev.target.value))
+                    }
+                  />
+                </div>
+              </div>
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center">
+                  <input
+                    id="animate"
+                    name="animate"
+                    type="checkbox"
+                    checked={animate}
+                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                    onChange={(ev) => {
+                      console.log(ev.target.checked);
+                      setAnimate(ev.target.checked);
+                    }}
+                  />
+                  <label
+                    htmlFor="animate"
+                    className="ml-3 block text-sm font-medium text-gray-700"
+                  >
+                    Animate
+                  </label>
+                </div>
+              </div>
+            </fieldset>
           </div>
         </div>
       </main>

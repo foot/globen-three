@@ -26,11 +26,16 @@ function DataViz({ animate, setDisplacement, displacement, populationIndex }) {
   // This reference will give us direct access to the mesh
   const lineSegmentsRef = useRef();
   const [dd, setDD] = useState(0.01);
+  const animateRef = useRef(animate);
+  useEffect(() => {
+    animateRef.current = animate;
+  }, [animate]);
 
   // Rotate mesh every frame, this is outside of React without overhead
   useFrame(() => {
     lineSegmentsRef.current.rotation.y += 0.001;
-    if (animate) {
+    // FIXME: this doesn't work, needs a ref.
+    if (animateRef.current) {
       if (displacement >= 2) {
         setDD(-0.01);
       } else if (displacement <= 0) {
@@ -40,22 +45,20 @@ function DataViz({ animate, setDisplacement, displacement, populationIndex }) {
     }
   });
 
-  const populationAttributes = useMemo(
-    () =>
-      new Float32Array(
-        lats.flatMap((lat) => {
-          const latPositions = lngs.map(
-            (lng) => (populationIndex[[lat, lng]] || 0) * 1
-          );
-          const latSegments = range(latPositions.length - 1).flatMap((i) => [
-            latPositions[i],
-            latPositions[i + 1],
-          ]);
-          return flatten(latSegments);
-        })
-      ),
-    [populationIndex.length]
-  );
+  const populationAttributes = useMemo(() => {
+    return new Float32Array(
+      lats.flatMap((lat) => {
+        const latPositions = lngs.map(
+          (lng) => (populationIndex[[lat, lng]] || 0) * 1
+        );
+        const latSegments = range(latPositions.length - 1).flatMap((i) => [
+          latPositions[i],
+          latPositions[i + 1],
+        ]);
+        return flatten(latSegments);
+      })
+    );
+  }, [populationIndex]);
 
   const positions = useMemo(
     () =>
@@ -78,34 +81,29 @@ function DataViz({ animate, setDisplacement, displacement, populationIndex }) {
   useEffect(() => {
     const { current } = lineSegmentsRef;
     current.material.uniformsNeedUpdate = true;
+    current.geometry.attributes.population.needsUpdate = true;
     current.material.uniforms.displacementA.value = displacement;
-  }, [lineSegmentsRef, positions, displacement]);
+  }, [lineSegmentsRef, positions, displacement, populationIndex]);
 
   const { uniforms, fragmentShader, vertexShader } = blueRed;
-
-  const geom = useMemo(() => {
-    return (
-      <bufferGeometry attach="geometry">
-        <bufferAttribute
-          attachObject={["attributes", "position"]}
-          count={positions.length / 3}
-          array={positions}
-          itemSize={3}
-        />
-        <bufferAttribute
-          attachObject={["attributes", "population"]}
-          count={populationAttributes.length}
-          array={populationAttributes}
-          itemSize={1}
-        />
-      </bufferGeometry>
-    );
-  }, []);
 
   return (
     <>
       <lineSegments ref={lineSegmentsRef}>
-        {geom}
+        <bufferGeometry attach="geometry">
+          <bufferAttribute
+            attachObject={["attributes", "position"]}
+            count={positions.length / 3}
+            array={positions}
+            itemSize={3}
+          />
+          <bufferAttribute
+            attachObject={["attributes", "population"]}
+            count={populationAttributes.length}
+            array={populationAttributes}
+            itemSize={1}
+          />
+        </bufferGeometry>
         <shaderMaterial
           attach="material"
           uniforms={uniforms}
@@ -148,6 +146,7 @@ export const Globe = (props) => {
   const viz = useMemo(() => <DataViz {...props} />, [
     props.displacement,
     props.populationIndex,
+    props.animate,
   ]);
 
   return (

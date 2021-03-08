@@ -2,7 +2,6 @@
   "name": "globen",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://foot.github.io/globen-three",
   "dependencies": {
     "@craco/craco": "^6.1.1",
     "@tailwindcss/postcss7-compat": "^2.0.3",
@@ -27,7 +26,7 @@
     "test": "craco test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "PUBLIC_URL=https://foot.github.io/globen-three gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
