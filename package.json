@@ -28,6 +28,9 @@
     "predeploy": "npm run build",
     "deploy": "PUBLIC_URL=https://foot.github.io/globen-three gh-pages -d build"
   },
+  "engines": {
+    "node": "<=16"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
